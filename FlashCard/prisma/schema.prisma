@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id          String   @id @default(cuid())
+  mockId      String   @unique
+  nickname    String
+  avatar      String?
+  isVip       Boolean  @default(false)
+  vipExpireAt DateTime?
+  streakDays  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reviewRecords ReviewRecord[]
+  dailyStats    DailyStat[]
+  subscriptions Subscription[]
+}
+
+model Card {
+  id          String   @id @default(cuid())
+  question    String
+  answer      String
+  explanation String
+  source      String
+  category    String
+  province    String
+  publishDate DateTime?
+  status      String   @default("approved")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reviewRecords ReviewRecord[]
+}
+
+model ReviewRecord {
+  id           String   @id @default(cuid())
+  userId       String
+  cardId       String
+  rating       Int
+  nextReviewAt DateTime
+  reviewCount  Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  card Card @relation(fields: [cardId], references: [id])
+
+  @@unique([userId, cardId])
+}
+
+model DailyStat {
+  id            String   @id @default(cuid())
+  userId        String
+  date          DateTime
+  reviewedCount Int      @default(0)
+  correctCount  Int      @default(0)
+  studyMinutes  Int      @default(0)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String
+  amount    Float
+  status    String
+  expireAt  DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
